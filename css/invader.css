@@ -1,0 +1,32 @@
+#index {
+  background-color: black; }
+
+#board {
+  width: 456px;
+  height: 750px;
+  display: block;
+  overflow: hidden;
+  border: 1px solid #fff; }
+
+.invader {
+  height: 100px;
+  width: 100px;
+  border: 1px solid #ff0;
+  float: left;
+  margin: 50px 50px 0 0;
+  animation-duration: 3s;
+  animation-name: moveRight;
+  animation-iteration-count: infinite;
+  animation-direction: alternate; }
+
+.base {
+  height: 50px;
+  width: 100px;
+  border: 1px solid #f0f; }
+
+@keyframes moveRight {
+  from {
+    transform: translateX(0); }
+
+  to {
+    transform: translateX(100px); } }
