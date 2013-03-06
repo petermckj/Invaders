@@ -6,7 +6,7 @@
 	
 </head>
 <body id="sprite">
-	<canvas id="space" style="background-color:#000;" width="1000" height="850">
+	<canvas id="space" style="background-color:#000;" width="1000" height="550">
 		<p>No invaders for you!</p>
 	</canvas>
 	<script type="text/javascript" charset="utf-8">
@@ -16,7 +16,7 @@
 			function FaceInvaders(){
 				var self = this;
 				var pathToImages = "images/";
-				var imagePaths = ['sprite1.png','sprite2.png','sprite3.png'];
+				var imagePaths = ['sprite1.png','sprite2.png','sprite3.png','base.png','bolt.png'];
 				var images = [];
 				var aliens = [];
 				var touchBorder = false;
@@ -31,7 +31,7 @@
 				var frame = 0;
 				var counter = 0;
 				var spacing = 0;
-				
+				var base, bolt, alienBolt;
 				
 				var Sprite = function(e) {
 					this.height = e.height;
@@ -93,19 +93,17 @@
 						
 					}
 					
-					console.log(alienSpeedX);
-					
 					if(touchBorder){
 						touchBorder = false;
 					}
-						for(var i = 0; i < aliens.length; i++ ){
-							var alien = aliens[i];
-							spacing = Math.floor(calculateSpacing(alien.img))*2;
-							alien.x += alienSpeedX; //getXPos(alien.col,alien.img.width);
-							alien.y = getYPos(alien.row,alien.img.height);
-						}
-						self.drawInvaders();
-					
+					for(var i = 0; i < aliens.length; i++ ){
+						var alien = aliens[i];
+						spacing = Math.floor(calculateSpacing(alien.img))*2;
+						alien.x += alienSpeedX; //getXPos(alien.col,alien.img.width);
+						alien.y = getYPos(alien.row,alien.img.height);
+					}
+					self.drawInvaders();
+					self.drawBase();//this should not be here!
 					setTimeout(self.moveInvaders,1000);
 				};
 				
@@ -133,10 +131,41 @@
 					}
 				};
 				
+				function getCenterX(width){
+					return (w/2)-(width/2);
+				};
+				
+				//register keydown handlers for base
+				var keyPressed = function(e) {
+					if(!e) e = window.event;
+					switch (e.keyCode)
+					{
+						case 37:	// left arrow
+							moveCannon = (e.type == "keyup") ? "N" : "L"; 
+							break;
+						case 39:	// right arrow
+							moveCannon = (e.type == "keyup") ? "N" : "R"; 
+							break;
+						case 32:	// spacebar									
+							cannonFire = (e.type == "keyup") ? false : true;
+							break;
+					}
+				};
+				
+				self.drawBase = function(){
+					ctx.drawImage(base.img,0,0,base.img.width,base.img.height/2,base.x,base.y,base.img.width/2,base.img.height/4);
+				};
+				
+				self.setupBase = function(){
+					var baseImg = loadImage(imagePaths[3]);
+					base = {height: baseImg.height, width: baseImg.width, x: getCenterX(baseImg.width), y:h-(baseImg.height/2)-10,img:baseImg, lives:2, score:0};
+				};
+				
 				self.init = function(){
 					self.loadSprites();
 					var i = 0;
 					self.setupInvaders();
+					self.setupBase();
 					setTimeout(self.moveInvaders,1000);
 				};
 				
