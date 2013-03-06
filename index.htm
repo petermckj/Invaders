@@ -1,0 +1,78 @@
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<title>index</title>
+		<link rel="stylesheet" href="css/invader.css" type="text/css" media="screen" title="no title" charset="utf-8">
+	</head>
+	<body id="index">
+		<div id="board">
+		</div>
+		<script>
+			window.game = {};
+			
+			window.onload = function(){
+				var spaceinvader = new game.SpaceInvaders();
+				spaceinvader.setup();
+			}
+			
+			(function(game){				
+				
+				function SpaceInvaders(game){
+					var self = this;
+					
+					self.invaders = [];//array to track invaders;
+					self.base = {};
+					self.score = 0;
+					self.elemCache = {};
+					self.direction = 1;
+					
+					
+					self.getBoard = function getBoard(){
+						if(self.elemCache['board']===undefined){
+							self.elemCache['board'] = document.getElementById('board');
+						}
+						return self.elemCache['board'];
+					};
+					
+					self.setup = function(){
+						var board = self.getBoard();
+						for(var i = 0; i < 9; i++){
+							//create 9 invaders;
+							if(self.elemCache['invader_' + i]===undefined){
+								self.elemCache['invader_' + i] = document.createElement( 'div' );
+								self.elemCache['invader_' + i].id = 'invader_' + i;
+								self.elemCache['invader_' + i].className = "invader";
+							}
+							board.appendChild(self.elemCache['invader_' + i]);
+						}
+						setTimeout(self.moveAliens,100);
+						board.addEventListener('click',self.click,false);
+					};
+					
+					self.moveAliens = function(){
+						var rect = self.elemCache['invader_0'].getBoundingClientRect();
+						var outer_rect = self.getBoard().getBoundingClientRect();
+						if(rect.right < outer_rect.right - 10){
+							for(var i = 0; i < 9; i++){
+								//create 9 invaders;
+								if(self.elemCache['invader_' + i]!==undefined){
+									console.log(self.elemCache['invader_' + i]);
+									self.elemCache['invader_' + i].style.left = (rect.left + 10) + 'px';
+								}
+							}
+						}
+					};
+					
+					self.click = function(e){
+						if(self.score<9){
+							self.getBoard().removeChild(self.elemCache['invader_' + self.score]);
+							self.score++;
+						}
+					};
+					
+				};
+				game.SpaceInvaders = SpaceInvaders;
+			}(window.game));
+		</script>
+	</body>
+</html>

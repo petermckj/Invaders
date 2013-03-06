@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	<title>sprite</title>
+	
+</head>
+<body id="sprite">
+	<canvas id="space" style="background-color:#000;" width="1000" height="850">
+		<p>No invaders for you!</p>
+	</canvas>
+	<script type="text/javascript" charset="utf-8">
+		var game = {};
+		
+		(function(game){
+			function FaceInvaders(){
+				var self = this;
+				var pathToImages = "images/";
+				var imagePaths = ['sprite1.png','sprite2.png','sprite3.png'];
+				var images = [];
+				var aliens = [];
+				var touchBorder = false;
+				var alienSpeedX = 10;
+				var alienSpeedY = 5;
+				var canvas = document.getElementById('space');
+				var ctx = canvas.getContext("2d");
+				var rows = 3;
+				var cols = 6;
+				var w = canvas.width;
+				var h = canvas.height;
+				var frame = 0;
+				var counter = 0;
+				var spacing = 0;
+				
+				
+				var Sprite = function(e) {
+					this.height = e.height;
+					this.width = e.width;
+					this.x = e.x;
+					this.y = e.y;
+				};
+					
+				function loadImage(name){
+					if(images.indexOf(name)<0){
+						var img = new Image();
+						img.src = pathToImages + name;
+						images.push(img);
+					}
+					return img;
+				};
+				
+				function calculateSpacing(img){	
+					return (w - (img.width * cols)) / cols;
+				};
+				
+				self.loadSprites = function(){
+					imagePaths.forEach(loadImage);
+				};
+				
+				self.drawImage = function(img,x,y){
+					ctx.drawImage(img,x,y);
+				};
+				
+				self.isTouchingBorder = function(x, alienWidth){
+					if((alienSpeedX > 0 && x + alienWidth >= canvas.offsetLeft + w) || (alienSpeedX < 0 && x <= 0)){
+						return true;
+					}
+					return false;
+				};
+				
+				function getXPos(pos,width){
+					return (pos*width)+spacing +(counter*alienSpeedX);
+				}
+				
+				function getYPos(pos,height){
+					return (pos*(height/2))+alienSpeedY;
+				}
+				
+				self.moveInvaders = function(){
+					for(var i = 0; i < aliens.length; i++ ){
+						var alien = aliens[i];
+						spacing = Math.floor(calculateSpacing(alien.img))*2;
+						var x = alien.x + alienSpeedX; //getXPos(alien.col,alien.img.width);
+						var y = getYPos(alien.row,alien.img.height);
+						if(self.isTouchingBorder(x,alien.img.width/2)  && !touchBorder){
+							touchBorder = true;
+							alienSpeedX > 0 ? alienSpeedX++ : alienSpeedX--;
+							
+							alienSpeedX *= -1;
+							alienSpeedY += 5;	
+							//x = getXPos(alien.col,alien.img.width);
+						}
+						
+					}
+					
+					console.log(alienSpeedX);
+					
+					if(touchBorder){
+						touchBorder = false;
+					}
+						for(var i = 0; i < aliens.length; i++ ){
+							var alien = aliens[i];
+							spacing = Math.floor(calculateSpacing(alien.img))*2;
+							alien.x += alienSpeedX; //getXPos(alien.col,alien.img.width);
+							alien.y = getYPos(alien.row,alien.img.height);
+						}
+						self.drawInvaders();
+					
+					setTimeout(self.moveInvaders,1000);
+				};
+				
+				self.drawInvaders = function(){
+					ctx.clearRect(0,0,w,h);
+					for(var i = 0; i < aliens.length; i++ ){
+						var alien = aliens[i];
+						var image = alien.img;
+						ctx.drawImage(image,0,frame,image.width,image.height/2,alien.x,alien.y,(image.width/2),(image.height/4));
+					}
+					alienSpeedX > 0 ? counter++ : counter--;
+					frame = frame===0?110:0;
+				};
+				
+				self.setupInvaders = function(){
+					for(var i  = 0; i < rows; i++){
+						var image = images[i];
+						spacing = Math.floor(calculateSpacing(image))*2;
+						for(var j = 0; j < cols; j++){
+							var x = getXPos(j,image.width);
+							var y = getYPos(i,image.height);
+							var s = {height: i.height, width: i.width, x:x, y:y, img: image, row: i, col: j};
+							aliens.push(s);
+						}
+					}
+				};
+				
+				self.init = function(){
+					self.loadSprites();
+					var i = 0;
+					self.setupInvaders();
+					setTimeout(self.moveInvaders,1000);
+				};
+				
+			};
+			game.FaceInvaders = FaceInvaders;
+		})(game);
+		
+		window.onload = function(){
+			var fi = new game.FaceInvaders();
+			fi.init();
+		}
+	</script>
+</body>
+</html>
