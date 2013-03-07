@@ -20,7 +20,7 @@
 				var images = [];
 				var aliens = [];
 				var touchBorder = false;
-				var alienSpeedX = 10;
+				var alienSpeedX = 1;
 				var alienSpeedY = 5;
 				var canvas = document.getElementById('space');
 				var ctx = canvas.getContext("2d");
@@ -32,13 +32,8 @@
 				var counter = 0;
 				var spacing = 0;
 				var base, bolt, alienBolt;
-				
-				var Sprite = function(e) {
-					this.height = e.height;
-					this.width = e.width;
-					this.x = e.x;
-					this.y = e.y;
-				};
+				var baseSpeedX = 10;
+				var boltSpeedY = 10;
 					
 				function loadImage(name){
 					if(images.indexOf(name)<0){
@@ -80,17 +75,15 @@
 					for(var i = 0; i < aliens.length; i++ ){
 						var alien = aliens[i];
 						spacing = Math.floor(calculateSpacing(alien.img))*2;
-						var x = alien.x + alienSpeedX; //getXPos(alien.col,alien.img.width);
+						var x = alien.x + alienSpeedX;
 						var y = getYPos(alien.row,alien.img.height);
 						if(self.isTouchingBorder(x,alien.img.width/2)  && !touchBorder){
 							touchBorder = true;
 							alienSpeedX > 0 ? alienSpeedX++ : alienSpeedX--;
-							
 							alienSpeedX *= -1;
-							alienSpeedY += 5;	
-							//x = getXPos(alien.col,alien.img.width);
+							alienSpeedY += 5;
+							break;
 						}
-						
 					}
 					
 					if(touchBorder){
@@ -102,9 +95,8 @@
 						alien.x += alienSpeedX; //getXPos(alien.col,alien.img.width);
 						alien.y = getYPos(alien.row,alien.img.height);
 					}
+					
 					self.drawInvaders();
-					self.drawBase();//this should not be here!
-					setTimeout(self.moveInvaders,1000);
 				};
 				
 				self.drawInvaders = function(){
@@ -141,14 +133,47 @@
 					switch (e.keyCode)
 					{
 						case 37:	// left arrow
-							moveCannon = (e.type == "keyup") ? "N" : "L"; 
+							base.x = (e.type == "keyup") ? base.x : base.x - baseSpeedX; 
 							break;
 						case 39:	// right arrow
-							moveCannon = (e.type == "keyup") ? "N" : "R"; 
+							base.x = (e.type == "keyup") ? base.x : base.x + baseSpeedX; 
 							break;
-						case 32:	// spacebar									
-							cannonFire = (e.type == "keyup") ? false : true;
+						case 32, 0:	// spacebar	
+							self.fireBolt();
 							break;
+					}
+				};
+				
+				self.fireBolt = function(){
+					if(!base.isFiring){
+						base.isFiring = true;
+						var boltImg = loadImage(imagePaths[4]);
+						bolt = {height: boltImg.height, width: boltImg.width,x: base.x + (base.width/2), y:base.y-boltImg.height,img:boltImg}
+					}
+					self.drawBolt();
+				};
+				
+				self.moveBolt = function(){
+					bolt.y -= boltSpeedY;
+					self.drawBolt();
+				}
+				
+				self.drawBolt = function(){
+					ctx.drawImage(bolt.img,0,0,bolt.width/2,bolt.height/2,bolt.x,bolt.y,bolt.width/2,bolt.height/2);
+				};
+				
+				self.moveBase = function(){
+					//need to add in left / right edge checks
+					if(base.x < 0 ){
+						base.x = 0;
+					}else if(base.x >= (canvas.offsetLeft + w)-(base.width/2)){
+						base.x = (canvas.offsetLeft + w)-(base.width/2);
+					}
+					//if(base.x > 0 && base.x < (canvas.offsetLeft + w)-base.width)
+						
+					self.drawBase();
+					if(base.isFiring){
+						self.moveBolt();
 					}
 				};
 				
@@ -158,7 +183,13 @@
 				
 				self.setupBase = function(){
 					var baseImg = loadImage(imagePaths[3]);
-					base = {height: baseImg.height, width: baseImg.width, x: getCenterX(baseImg.width), y:h-(baseImg.height/2)-10,img:baseImg, lives:2, score:0};
+					base = {height: baseImg.height, width: baseImg.width, x: getCenterX(baseImg.width), y:h-(baseImg.height/2)-10,img:baseImg, lives:2, score:0, fire: self.fireBolt, isFiring: false};
+				};
+				
+				self.game = function(){
+					self.moveInvaders();
+					self.moveBase();
+					setTimeout(self.game,1000/24);
 				};
 				
 				self.init = function(){
@@ -166,7 +197,8 @@
 					var i = 0;
 					self.setupInvaders();
 					self.setupBase();
-					setTimeout(self.moveInvaders,1000);
+					setTimeout(self.game,1000/24);
+					addEventListener("keypress",keyPressed,false);
 				};
 				
 			};
