@@ -16,6 +16,7 @@
 			function FaceInvaders(){
 				var self = this;
 				var pathToImages = "images/";
+				var gameImage = null;
 				var imagePaths = ['sprite1.png','sprite2.png','sprite3.png','base.png','bolt.png'];
 				var images = [];
 				var aliens = [];
@@ -34,8 +35,88 @@
 				var base, bolt, alienBolt;
 				var baseSpeedX = 10;
 				var boltSpeedY = 10;
-					
-				function loadImage(name){
+				
+				//sort out all sprites
+				var sprites = {
+					base: {
+						name: "base",
+						width: 100,
+						height: 50,
+						frames: [{x:0,y:0},{x:0,y:50}]
+					},
+					bolt: {
+						name: "bolt",
+						width: 10,
+						height: 50,
+						frames: [{x:0,y:0},{x:0,y:50}]
+					},
+					alien1: {
+						name: "alien1",
+						width: 100,
+						height: 50,
+						frames: [{x:0,y:0},{x:0,y:50}]
+					},
+					alien2: {
+						name: "alien2",
+						width: 100,
+						height: 50,
+						frames: [{x:0,y:0},{x:0,y:50}]
+					},
+					alien3: {
+						name: "alien3",
+						width: 100,
+						height: 50,
+						frames: [{x:0,y:0},{x:0,y:50}]
+					},
+					saucer: {
+						name: "saucer",
+						width: 100,
+						height: 50,
+						frames: [{x:0,y:0},{x:0,y:50}]
+					}
+				};
+				
+				function isColliding(target){
+					var self = this;
+					if((target.x >= self.x && target.x + target.sprite.width <= self.x + self.sprite.width) && (target.y >= self.y && target.y + target.sprite.height <= self.y + self.sprite.height)) return true;
+					return false;
+				}
+				
+				var GameObject = {
+					self: this,
+					row: 0,
+					col: 0,
+					sprite: null,
+					x: 0,
+					y: 0,
+					frame:0,
+					moveX: function(dx){
+						self.x += dx;
+					},
+					render: function(){
+						frame = frame === 1 ? 0 : 1;
+						ctx.drawImage(gameImage,sprite.frames[frame].x,sprite.frames[frame].y,sprite.width,sprite.height,x,y,sprite.frames[frame].width,sprite.frames[frame].height);
+					},					
+					isColliding: isColliding
+				};
+				
+				var Invader = Object.create(GameObject);
+				Invader.moveY = function(dy){
+					self.y += dy;
+				};
+				Invader.points = 10;
+				
+				var Base = Object.create(GameObject);
+				Base.fireBolt = function(){};//to be implemented
+				Base.lives = 2;
+				Base.score = 0;
+				
+				
+				
+				
+				var utils = {};
+				
+				utils.loadImage = function(name){
 					if(images.indexOf(name)<0){
 						var img = new Image();
 						img.src = pathToImages + name;
@@ -44,12 +125,12 @@
 					return img;
 				};
 				
-				function calculateSpacing(img){	
+				utils.calculateSpacing = function(img){	
 					return (w - (img.width * cols)) / cols;
 				};
 				
 				self.loadSprites = function(){
-					imagePaths.forEach(loadImage);
+					imagePaths.forEach(utils.loadImage);
 				};
 				
 				self.drawImage = function(img,x,y){
@@ -74,7 +155,7 @@
 				self.moveInvaders = function(){
 					for(var i = 0; i < aliens.length; i++ ){
 						var alien = aliens[i];
-						spacing = Math.floor(calculateSpacing(alien.img))*2;
+						spacing = Math.floor(utils.calculateSpacing(alien.img))*2;
 						var x = alien.x + alienSpeedX;
 						var y = getYPos(alien.row,alien.img.height);
 						if(self.isTouchingBorder(x,alien.img.width/2)  && !touchBorder){
@@ -91,7 +172,7 @@
 					}
 					for(var i = 0; i < aliens.length; i++ ){
 						var alien = aliens[i];
-						spacing = Math.floor(calculateSpacing(alien.img))*2;
+						spacing = Math.floor(utils.calculateSpacing(alien.img))*2;
 						alien.x += alienSpeedX; //getXPos(alien.col,alien.img.width);
 						alien.y = getYPos(alien.row,alien.img.height);
 					}
@@ -113,7 +194,7 @@
 				self.setupInvaders = function(){
 					for(var i  = 0; i < rows; i++){
 						var image = images[i];
-						spacing = Math.floor(calculateSpacing(image))*2;
+						spacing = Math.floor(utils.calculateSpacing(image))*2;
 						for(var j = 0; j < cols; j++){
 							var x = getXPos(j,image.width);
 							var y = getYPos(i,image.height);
@@ -147,7 +228,7 @@
 				self.fireBolt = function(){
 					if(!base.isFiring){
 						base.isFiring = true;
-						var boltImg = loadImage(imagePaths[4]);
+						var boltImg = utils.loadImage(imagePaths[4]);
 						bolt = {height: boltImg.height, width: boltImg.width,x: base.x + (base.width/2), y:base.y-boltImg.height,img:boltImg}
 					}
 					self.drawBolt();
@@ -182,7 +263,7 @@
 				};
 				
 				self.setupBase = function(){
-					var baseImg = loadImage(imagePaths[3]);
+					var baseImg = utils.loadImage(imagePaths[3]);
 					base = {height: baseImg.height, width: baseImg.width, x: getCenterX(baseImg.width), y:h-(baseImg.height/2)-10,img:baseImg, lives:2, score:0, fire: self.fireBolt, isFiring: false};
 				};
 				
